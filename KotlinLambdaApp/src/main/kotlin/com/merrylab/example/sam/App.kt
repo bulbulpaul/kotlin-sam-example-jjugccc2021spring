@@ -13,8 +13,6 @@ import kotlin.Throws
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.URL
-import java.sql.Connection
-import java.sql.DriverManager
 import java.util.stream.Collectors
 
 /**
@@ -40,7 +38,7 @@ class App : RequestHandler<APIGatewayProxyRequestEvent?, APIGatewayProxyResponse
                     rs.getString("speaker"), rs.getTimestamp("start_time") ))
         }
 
-        val responseData = categoriseContents(contents)
+        val responseData = categorizeContents(contents)
 
         val headers: MutableMap<String, String> = HashMap()
         headers["Content-Type"] = "application/json"
@@ -58,7 +56,7 @@ class App : RequestHandler<APIGatewayProxyRequestEvent?, APIGatewayProxyResponse
         }
     }
 
-    fun categoriseContents(contents: List<JjugContent>): Map<String, List<JjugContent>> {
+    fun categorizeContents(contents: List<JjugContent>): Map<String, List<JjugContent>> {
         return contents.groupBy { content: JjugContent ->
             content.category
         }.mapValues { categoryContents ->
