@@ -47,7 +47,7 @@ jobs:
           sam build
       - name: Run unit tests
         run: |
-          ./gradlew test
+          cd KotlinLambdaApp && ./gradlew test && cd ../
       - name: SAM Deploy
         run: |
           # Create S3 Bucket to store code
