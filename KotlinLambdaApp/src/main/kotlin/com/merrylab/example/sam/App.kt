@@ -13,6 +13,7 @@ import kotlin.Throws
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.URL
+import java.sql.ResultSet
 import java.util.stream.Collectors
 
 /**
@@ -28,16 +29,13 @@ class App : RequestHandler<APIGatewayProxyRequestEvent?, APIGatewayProxyResponse
     override fun handleRequest(input: APIGatewayProxyRequestEvent?, context: Context?): APIGatewayProxyResponseEvent {
         val connection = getConnection()
         val statement = connection.createStatement()
-        val rs = statement.executeQuery(
+        // DBからJJUGのセッションデータを取得する
+        val rs: ResultSet = statement.executeQuery(
             "SELECT title, category, speaker, start_time FROM jjug_content WHERE year = 2021 AND season = 'spring'"
         )
-        val contents = mutableListOf<JjugContent>()
-        logger.info { "" }
-        while (rs.next()) {
-            contents.add(JjugContent(rs.getString("title"), rs.getString("category"),
-                    rs.getString("speaker"), rs.getTimestamp("start_time") ))
-        }
+        val contents: List<JjugContent> = convertList(rs)
 
+        // カテゴリ別のMapへ変換する
         val responseData = categorizeContents(contents)
 
         val headers: MutableMap<String, String> = HashMap()
@@ -56,13 +54,12 @@ class App : RequestHandler<APIGatewayProxyRequestEvent?, APIGatewayProxyResponse
         }
     }
 
-    fun categorizeContents(contents: List<JjugContent>): Map<String, List<JjugContent>> {
-        return contents.groupBy { content: JjugContent ->
+    fun categorizeContents(contents: List<JjugContent>) =
+        contents.groupBy { content: JjugContent ->
             content.category
         }.mapValues { categoryContents ->
             categoryContents.value.sortedBy { it.start_time }
         }
-    }
 
     @Throws(IOException::class)
     private fun getPageContents(address: String): String {
@@ -71,4 +68,17 @@ class App : RequestHandler<APIGatewayProxyRequestEvent?, APIGatewayProxyResponse
             return br.lines().collect(Collectors.joining(System.lineSeparator()))
         }
     }
+}
+
+fun convertList(rs: ResultSet): List<JjugContent> {
+    val contents = mutableListOf<JjugContent>()
+    while (rs.next()) {
+        contents.add(
+            JjugContent(
+                rs.getString("title"), rs.getString("category"),
+                rs.getString("speaker"), rs.getLong("start_time")
+            )
+        )
+    }
+    return contents
 }
