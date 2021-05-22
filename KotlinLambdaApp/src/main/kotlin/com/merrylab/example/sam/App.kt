@@ -9,12 +9,7 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import java.util.HashMap
 import java.io.IOException
-import kotlin.Throws
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.URL
 import java.sql.ResultSet
-import java.util.stream.Collectors
 
 /**
  * Handler for requests to Lambda function.
@@ -23,7 +18,7 @@ class App : RequestHandler<APIGatewayProxyRequestEvent?, APIGatewayProxyResponse
 
     companion object {
         // Logger
-        private val logger = KotlinLogging.logger {  }
+        private val logger = KotlinLogging.logger { }
     }
 
     override fun handleRequest(input: APIGatewayProxyRequestEvent?, context: Context?): APIGatewayProxyResponseEvent {
@@ -60,14 +55,6 @@ class App : RequestHandler<APIGatewayProxyRequestEvent?, APIGatewayProxyResponse
         }.mapValues { categoryContents ->
             categoryContents.value.sortedBy { it.start_time }
         }
-
-    @Throws(IOException::class)
-    private fun getPageContents(address: String): String {
-        val url = URL(address)
-        BufferedReader(InputStreamReader(url.openStream())).use { br ->
-            return br.lines().collect(Collectors.joining(System.lineSeparator()))
-        }
-    }
 }
 
 fun convertList(rs: ResultSet): List<JjugContent> {
